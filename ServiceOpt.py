@@ -2,7 +2,7 @@
 
 
 # 2019/1/3 0003 下午 3:19     
-# dell
+# RollingBear
 
 import os
 import time
@@ -34,6 +34,7 @@ def ServiceStart(ServiceName):
 
     if "1058" in result:
         createWindow("错误", "服务已被禁用")
+
 
 '''停止服务'''
 
@@ -75,7 +76,7 @@ def openNoteByName(LogAddress, ServiceName):
 
 
 def openFile(Address):
-    os.popen("start " + Address)
+    os.popen("start " + os.path.abspath(Address))
 
 
 '''弹窗'''

@@ -2,22 +2,12 @@
 
 
 # 2019/1/3 0003 下午 3:19     
-# dell
+# RollingBear
 
 from tkinter import *
 import ServiceOpt
 import configparser
-
-config = configparser.ConfigParser()
-config.read("config.ini")
-
-'''文件地址'''
-ServiceNameListAddress = config.get("address", "ServiceNameListAddress")
-ConfigAddress = config.get("address", "LogListAddress")
-RedPicAddress = config.get("address", "RedPicAddress")
-GreenPicAddress = config.get("address", "GreenPicAddress")
-YellowPicAddress = config.get("address", "YellowPicAddress")
-LogoPicAddress = config.get("address", "LogoPicAddress")
+import _thread
 
 '''名称'''
 START = "启动"
@@ -42,18 +32,21 @@ BLANK_2 = "  "
 BLANK_3 = "   "
 BLANK_4 = "    "
 
-'''读文件'''
+'''读取配置文件'''
 
 
-# def readFromFile(address):
-#     File = open(address)
-#
-#     result = File.readlines()
-#     File.close()
-#     for count in range(len(result)):
-#         result[count] = result[count].replace("\n", "")
-#     File.close()
-#     return result
+def loadCONF():
+    global LogListAddress, RedPicAddress, GreenPicAddress, YellowPicAddress, LogoPicAddress, ServiceNameList
+
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+
+    LogListAddress = config.get("address", "LogListAddress")
+    RedPicAddress = config.get("address", "RedPicAddress")
+    GreenPicAddress = config.get("address", "GreenPicAddress")
+    YellowPicAddress = config.get("address", "YellowPicAddress")
+    LogoPicAddress = config.get("address", "LogoPicAddress")
+    ServiceNameList = config.get("name", "ServiceName").split(', ')
 
 
 '''按钮'''
@@ -75,7 +68,7 @@ def printMenuButton(tk, mes, count, column):
         fileMenu.add_radiobutton(label=STOP, value=2, command=lambda: ServiceOpt.ServiceStop(mes))
         fileMenu.add_radiobutton(label=RE_START, value=3, command=lambda: ServiceOpt.ServiceReStart(mes))
         fileMenu.add_radiobutton(label=LOG_FILE, value=4,
-                                 command=lambda: ServiceOpt.openNoteByName(LogFileAddress, mes))
+                                 command=lambda: ServiceOpt.openNoteByName(LogListAddress, mes))
         fileMenu.add_radiobutton(label=SET_START_AUTO, value=5,
                                  command=lambda: ServiceOpt.ServiceSetStartAuto(mes, "auto"))
         fileMenu.add_radiobutton(label=SET_START_DEMAND, value=6,
@@ -87,13 +80,13 @@ def printMenuButton(tk, mes, count, column):
 
 def printButton(tk, text, mes, row, column, columnspan):
     if text == START_ALL:
-        btn = Button(tk, text=text, width=8, height=1, relief=FLAT, activeforeground="blue",
+        btn = Button(tk, text=text, width=8, height=1, activeforeground="blue",
                      command=lambda List=mes: ServiceAllStart(List))
     elif text == STOP_ALL:
-        btn = Button(tk, text=text, width=8, height=1, relief=FLAT, activeforeground="blue",
+        btn = Button(tk, text=text, width=8, height=1, activeforeground="blue",
                      command=lambda List=mes: ServiceAllStop(List))
     elif text == LOG_LIST:
-        btn = Button(tk, text=text, width=8, height=1, relief=FLAT, activeforeground="blue",
+        btn = Button(tk, text=text, width=8, height=1, activeforeground="blue",
                      command=lambda: ServiceLogList())
     btn.grid(row=row, column=column, columnspan=columnspan)
     btn.bind("<Enter>", lambda event: event.widget.config(fg="blue"))
@@ -131,7 +124,7 @@ def ServiceAllStop(ServiceNameList):
 
 
 def ServiceLogList():
-    ServiceOpt.openFile(LogFileAddress)
+    ServiceOpt.openFile(LogListAddress)
 
 
 '''加载服务状态'''
@@ -163,14 +156,11 @@ def ServiceStateReFresh():
 
 
 def start():
-
-    global myGui, LogFileAddress, ServiceNameList, GREEN, RED, YELLOW, LOGO
+    global myGui, ServiceNameList, GREEN, RED, YELLOW, LOGO
 
     myGui = Tk(className="服务管理")
     myGui.withdraw()
     myGui.resizable(width=False, height=False)
-    LogFileAddress = ConfigAddress
-    ServiceNameList = config.get("name", "ServiceName").split(', ')
 
     GREEN = PhotoImage(file=GreenPicAddress)
     RED = PhotoImage(file=RedPicAddress)
@@ -179,9 +169,7 @@ def start():
 
     for count in range(len(ServiceNameList)):
         printMenuButton(myGui, ServiceNameList[count], count, 1)
-        # printLabel(myGui, BLANK_4, count, 2, 1)
-        # ServiceState(count, 3, 1, ServiceNameList[count])
-        # printLabel(myGui, BLANK_4 * 3, count, 4, 1)
+        ServiceState(count, 3, 1, ServiceNameList[count])
 
     printLabel(myGui, BLANK_4, len(ServiceNameList) + 1, 1, 1)
 
@@ -196,10 +184,11 @@ def start():
 
     SetX = (myGui.winfo_screenwidth() - myGui.winfo_reqwidth()) / 2
     SetY = (myGui.winfo_screenheight() - myGui.winfo_reqheight()) / 2
-    myGui.geometry("%dx%d+%d+%d" % (myGui.winfo_reqwidth(), myGui.winfo_reqheight(), SetX, SetY))
+    myGui.geometry("%dx%d+%d+%d" % (myGui.winfo_reqwidth()+10, myGui.winfo_reqheight(), SetX, SetY))
     myGui.deiconify()
     myGui.mainloop()
 
 
 if __name__ == '__main__':
+    loadCONF()
     start()
