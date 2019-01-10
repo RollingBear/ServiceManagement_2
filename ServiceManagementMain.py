@@ -5,18 +5,19 @@
 # dell
 
 from tkinter import *
-from tkinter import ttk
-
-import tkinter
 import ServiceOpt
+import configparser
+
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 '''文件地址'''
-ServiceNameListAddress = "ServiceNameList.txt"
-ConfigAddress = "config.txt"
-RedPicAddress = "pic\RED.png"
-GreenPicAddress = "pic\GREEN.png"
-YellowAddress = "pic\YELLOW.png"
-LogoPicAddress = "pic\LOGO.png"
+ServiceNameListAddress = config.get("address", "ServiceNameListAddress")
+ConfigAddress = config.get("address", "LogListAddress")
+RedPicAddress = config.get("address", "RedPicAddress")
+GreenPicAddress = config.get("address", "GreenPicAddress")
+YellowPicAddress = config.get("address", "YellowPicAddress")
+LogoPicAddress = config.get("address", "LogoPicAddress")
 
 '''名称'''
 START = "启动"
@@ -32,10 +33,8 @@ SET_START_DISABLED = "禁用服务"
 SET_START_ALL_DISABLED = "禁用全部服务"
 LOG_FILE = "日志"
 LOG_LIST = "日志目录"
-
 RE_FRESH_STATE = "刷新状态"
 
-MESSAGE_TEXT = ""
 SERVICE_NOT_INSTALL = "服务未安装"
 
 BLANK_1 = " "
@@ -46,19 +45,15 @@ BLANK_4 = "    "
 '''读文件'''
 
 
-def readFromFile(address, type):
-    File = open(address)
-    if type == 1:
-        result = File.read()
-        File.close()
-        return result
-    elif type == 0:
-        result = File.readlines()
-        File.close()
-        for count in range(len(result)):
-            result[count] = result[count].replace("\n", "")
-        File.close()
-        return result
+# def readFromFile(address):
+#     File = open(address)
+#
+#     result = File.readlines()
+#     File.close()
+#     for count in range(len(result)):
+#         result[count] = result[count].replace("\n", "")
+#     File.close()
+#     return result
 
 
 '''按钮'''
@@ -164,24 +159,29 @@ def ServiceStateReFresh():
     myGui.after(800, ServiceStateReFresh)
 
 
-if __name__ == '__main__':
+'''启动服务'''
+
+
+def start():
+
+    global myGui, LogFileAddress, ServiceNameList, GREEN, RED, YELLOW, LOGO
 
     myGui = Tk(className="服务管理")
+    myGui.withdraw()
     myGui.resizable(width=False, height=False)
-
-    LogFileAddress = readFromFile(ConfigAddress, 1)
-    ServiceNameList = readFromFile(ServiceNameListAddress, 0)
+    LogFileAddress = ConfigAddress
+    ServiceNameList = config.get("name", "ServiceName").split(', ')
 
     GREEN = PhotoImage(file=GreenPicAddress)
     RED = PhotoImage(file=RedPicAddress)
-    YELLOW = PhotoImage(file=YellowAddress)
+    YELLOW = PhotoImage(file=YellowPicAddress)
     LOGO = PhotoImage(file=LogoPicAddress)
 
     for count in range(len(ServiceNameList)):
         printMenuButton(myGui, ServiceNameList[count], count, 1)
-        printLabel(myGui, BLANK_4, count, 2, 1)
-        ServiceState(count, 3, 1, ServiceNameList[count])
-        printLabel(myGui, BLANK_4 * 3, count, 4, 1)
+        # printLabel(myGui, BLANK_4, count, 2, 1)
+        # ServiceState(count, 3, 1, ServiceNameList[count])
+        # printLabel(myGui, BLANK_4 * 3, count, 4, 1)
 
     printLabel(myGui, BLANK_4, len(ServiceNameList) + 1, 1, 1)
 
@@ -191,4 +191,15 @@ if __name__ == '__main__':
     printButton(myGui, LOG_LIST, None, len(ServiceNameList) + 2, 4, 1)
 
     ServiceStateReFresh()
+
+    myGui.update_idletasks()
+
+    SetX = (myGui.winfo_screenwidth() - myGui.winfo_reqwidth()) / 2
+    SetY = (myGui.winfo_screenheight() - myGui.winfo_reqheight()) / 2
+    myGui.geometry("%dx%d+%d+%d" % (myGui.winfo_reqwidth(), myGui.winfo_reqheight(), SetX, SetY))
+    myGui.deiconify()
     myGui.mainloop()
+
+
+if __name__ == '__main__':
+    start()
