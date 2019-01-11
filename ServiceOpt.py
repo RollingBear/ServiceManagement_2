@@ -69,7 +69,7 @@ def ServiceSetStartAuto(ServiceName, State):
 
 
 def openNoteByName(LogAddress, ServiceName):
-    os.system("notepad " + LogAddress + "\\" + ServiceName)
+    os.system("notepad " + LogAddress + "\\" + ServiceName + ".log")
 
 
 '''打开文件夹'''

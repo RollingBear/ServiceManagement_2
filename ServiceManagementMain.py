@@ -28,6 +28,7 @@ RE_FRESH_STATE = "刷新状态"
 
 SERVICE_NOT_INSTALL = "服务未安装"
 
+
 BLANK_1 = " "
 BLANK_2 = "  "
 BLANK_3 = "   "
@@ -47,28 +48,29 @@ def loadCONF():
     GreenPicAddress = config.get("address", "GreenPicAddress")
     YellowPicAddress = config.get("address", "YellowPicAddress")
     LogoPicAddress = config.get("address", "LogoPicAddress")
-    ServiceNameListAddress = config.get("address", "NameListAddress")
 
-    file = open(ServiceNameListAddress)
-    ServiceNameList = file.readlines()
-    print(ServiceNameList)
-    for count in range(len(ServiceNameList)):
-        ServiceNameList[count] = ServiceNameList[count].replace("\n", "")
-    file.close()
+    file = open(config.get("address", "NameListAddress"), encoding="utf-8-sig")
+    ServiceNameList = []
+    result = file.readlines()
+    for count in range(len(result)):
+        result[count] = result[count].replace("\n", "")
+        result_1 = result[count].split(",")
+        ServiceNameList.append(result_1[0])
+        ServiceNameList.append(result_1[1])
 
 
 '''按钮'''
 
 
-def printMenuButton(tk, mes, count, column):
+def printMenuButton(tk, text, mes, count, column):
     if ServiceOpt.getServiceState(mes) == -1:
-        btn = Button(tk, text=mes, anchor='w', height=1, relief=FLAT, activeforeground="blue")
+        btn = Button(tk, text=text, anchor='w', height=1, relief=FLAT, activeforeground="blue")
         btn.bind("<Button-1>", lambda index=None, title="错误", mes="服务未安装": ServiceOpt.createWindow(title, mes))
         btn.bind("<Enter>", lambda event: event.widget.config(fg="blue"))
         btn.bind("<Leave>", lambda event: event.widget.config(fg="black"))
         btn.grid(row=count, column=column, sticky=W)
     else:
-        btn = Menubutton(tk, text=mes, anchor='w', height=1, relief=FLAT, activeforeground="blue")
+        btn = Menubutton(tk, text=text, anchor='w', height=1, relief=FLAT, activeforeground="blue")
         btn.grid(
             row=count, column=column, sticky=W)
         fileMenu = Menu(btn, tearoff=False)
@@ -114,23 +116,23 @@ def printPNG(photo, row, column, columnspan):
 '''标签'''
 
 
-def printLabel(tk, mes, row, column, columnspan):
-    Label(tk, text=mes, anchor=NW).grid(row=row, column=column, columnspan=columnspan, sticky=W)
+def printLabel(tk, mes, row, column, columnspan, sticky=W):
+    Label(tk, text=mes, anchor=NW).grid(row=row, column=column, columnspan=columnspan, sticky=sticky)
 
 
 '''按钮服务'''
 
 
 def ServiceAllStart(ServiceNameList):
-    for count in range(len(ServiceNameList)):
-        ServiceOpt.ServiceStart(ServiceNameList[count])
-        ServiceState(count, 3, 1, ServiceNameList[count])
+    for count in range(int(len(ServiceNameList) / 2)):
+        ServiceOpt.ServiceStart(ServiceNameList[int(count * 2)])
+        ServiceState(count, 3, 1, ServiceNameList[int(count * 2)])
 
 
 def ServiceAllStop(ServiceNameList):
-    for count in range(len(ServiceNameList)):
-        ServiceOpt.ServiceStop(ServiceNameList[count])
-        ServiceState(count, 3, 1, ServiceNameList[count])
+    for count in range(int(len(ServiceNameList) / 2)):
+        ServiceOpt.ServiceStop(ServiceNameList[int(count * 2)])
+        ServiceState(count, 3, 1, ServiceNameList[int(count * 2)])
 
 
 def ServiceLogList():
@@ -140,26 +142,29 @@ def ServiceLogList():
 '''加载服务状态'''
 
 
-def ServiceState(count, column, columnspan, ServiceName):
+def ServiceState(tk, count, column, columnspan, ServiceName):
     FLAG = ServiceOpt.getServiceState(ServiceName)
     if FLAG == 1:
         printPNG(GREEN, count, column, columnspan)
+        printLabel(tk, "已启动", count, column + 1, columnspan)
         return True
     elif FLAG == 0:
         printPNG(RED, count, column, columnspan)
+        printLabel(tk, "未启动", count, column + 1, columnspan)
         return True
     elif FLAG == -1:
         printPNG(YELLOW, count, column, columnspan)
+        printLabel(tk, "未安装", count, column + 1, columnspan)
         return False
 
 
 '''状态刷新'''
 
 
-def ReFreshThread(ServiceNameList, delay):
+def ReFreshThread(tk, ServiceNameList, delay):
     while True:
-        for count in range(len(ServiceNameList)):
-            ServiceState(count, 3, 1, ServiceNameList[count])
+        for count in range(int(len(ServiceNameList) / 2)):
+            ServiceState(tk, count, 3, 1, ServiceNameList[int(count * 2)])
         time.sleep(delay)
 
 
@@ -168,7 +173,6 @@ def ReFreshThread(ServiceNameList, delay):
 
 def start():
     global myGui, ServiceNameList, GREEN, RED, YELLOW, LOGO
-
     myGui = Tk(className="服务管理")
     myGui.withdraw()
     myGui.resizable(width=False, height=False)
@@ -178,19 +182,19 @@ def start():
     YELLOW = PhotoImage(file=YellowPicAddress)
     LOGO = PhotoImage(file=LogoPicAddress)
 
-    for count in range(len(ServiceNameList)):
-        printMenuButton(myGui, ServiceNameList[count], count, 1)
-        ServiceState(count, 3, 1, ServiceNameList[count])
+    for count in range(int(len(ServiceNameList) / 2)):
+        printMenuButton(myGui, ServiceNameList[int(count * 2 + 1)], ServiceNameList[int(count * 2)], count, 1)
+        ServiceState(myGui, count, 3, 1, ServiceNameList[int(count * 2)])
 
-    printLabel(myGui, BLANK_4, len(ServiceNameList) + 1, 1, 1)
+    printLabel(myGui, BLANK_4, int(len(ServiceNameList) / 2) + 1, 1, 1)
 
-    printPNG(LOGO, len(ServiceNameList) + 2, 1, 1)
-    printButton(myGui, START_ALL, ServiceNameList, len(ServiceNameList) + 2, 2, 1)
-    printButton(myGui, STOP_ALL, ServiceNameList, len(ServiceNameList) + 2, 3, 1)
-    printButton(myGui, LOG_LIST, None, len(ServiceNameList) + 2, 4, 1)
+    printPNG(LOGO, int(len(ServiceNameList) / 2) + 2, 1, 1)
+    printButton(myGui, START_ALL, ServiceNameList, int(len(ServiceNameList) / 2) + 2, 2, 1)
+    printButton(myGui, STOP_ALL, ServiceNameList, int(len(ServiceNameList) / 2) + 2, 3, 1)
+    printButton(myGui, LOG_LIST, None, int(len(ServiceNameList) / 2) + 2, 4, 1)
 
     try:
-        _thread.start_new_thread(ReFreshThread, (ServiceNameList, 2))
+        _thread.start_new_thread(ReFreshThread, (myGui, ServiceNameList, 2))
     except:
         print('Thread start Error')
 
