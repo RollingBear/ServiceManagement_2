@@ -47,7 +47,14 @@ def loadCONF():
     GreenPicAddress = config.get("address", "GreenPicAddress")
     YellowPicAddress = config.get("address", "YellowPicAddress")
     LogoPicAddress = config.get("address", "LogoPicAddress")
-    ServiceNameList = config.get("name", "ServiceName").split(', ')
+    ServiceNameListAddress = config.get("address", "NameListAddress")
+
+    file = open(ServiceNameListAddress)
+    ServiceNameList = file.readlines()
+    print(ServiceNameList)
+    for count in range(len(ServiceNameList)):
+        ServiceNameList[count] = ServiceNameList[count].replace("\n", "")
+    file.close()
 
 
 '''按钮'''
@@ -117,11 +124,13 @@ def printLabel(tk, mes, row, column, columnspan):
 def ServiceAllStart(ServiceNameList):
     for count in range(len(ServiceNameList)):
         ServiceOpt.ServiceStart(ServiceNameList[count])
+        ServiceState(count, 3, 1, ServiceNameList[count])
 
 
 def ServiceAllStop(ServiceNameList):
     for count in range(len(ServiceNameList)):
         ServiceOpt.ServiceStop(ServiceNameList[count])
+        ServiceState(count, 3, 1, ServiceNameList[count])
 
 
 def ServiceLogList():
@@ -181,7 +190,7 @@ def start():
     printButton(myGui, LOG_LIST, None, len(ServiceNameList) + 2, 4, 1)
 
     try:
-        _thread.start_new_thread(ReFreshThread, (ServiceNameList, 3))
+        _thread.start_new_thread(ReFreshThread, (ServiceNameList, 2))
     except:
         print('Thread start Error')
 
