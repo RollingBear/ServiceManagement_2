@@ -7,6 +7,7 @@
 from tkinter import *
 import ServiceOpt
 import configparser
+import time
 import _thread
 
 '''名称'''
@@ -146,10 +147,11 @@ def ServiceState(count, column, columnspan, ServiceName):
 '''状态刷新'''
 
 
-def ServiceStateReFresh():
-    for count in range(len(ServiceNameList)):
-        ServiceState(count, 3, 1, ServiceNameList[count])
-    myGui.after(800, ServiceStateReFresh)
+def ReFreshThread(ServiceNameList, delay):
+    while True:
+        for count in range(len(ServiceNameList)):
+            ServiceState(count, 3, 1, ServiceNameList[count])
+        time.sleep(delay)
 
 
 '''启动服务'''
@@ -178,13 +180,16 @@ def start():
     printButton(myGui, STOP_ALL, ServiceNameList, len(ServiceNameList) + 2, 3, 1)
     printButton(myGui, LOG_LIST, None, len(ServiceNameList) + 2, 4, 1)
 
-    ServiceStateReFresh()
+    try:
+        _thread.start_new_thread(ReFreshThread, (ServiceNameList, 3))
+    except:
+        print('Thread start Error')
 
     myGui.update_idletasks()
 
     SetX = (myGui.winfo_screenwidth() - myGui.winfo_reqwidth()) / 2
     SetY = (myGui.winfo_screenheight() - myGui.winfo_reqheight()) / 2
-    myGui.geometry("%dx%d+%d+%d" % (myGui.winfo_reqwidth()+10, myGui.winfo_reqheight(), SetX, SetY))
+    myGui.geometry("%dx%d+%d+%d" % (myGui.winfo_reqwidth() + 8, myGui.winfo_reqheight(), SetX, SetY))
     myGui.deiconify()
     myGui.mainloop()
 
